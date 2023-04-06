@@ -1,11 +1,27 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
+import Head from "next/head";
+import { useState, useEffect, SetStateAction } from "react";
+import { useRouter } from "next/router";
+import useSWR from "swr";
+import styles from "@/styles/study.module.css";
+import { DeckBody } from "@/types";
+import Navbar from "@/components/navbar";
 
-const inter = Inter({ subsets: ['latin'] })
+export default function Home({ auth }: HomeProps) {
+  const [userName, setUserName] = useState<string>("");
+  const [createDeckPopUp, setCreateDeckPopUp] = useState<boolean>(false);
+  const [addCardPopUp, setAddCardPopUp] = useState<boolean>(false);
+  const router = useRouter();
+  useEffect(() => {
+    const localUserName = localStorage?.getItem("user_name") || "";
+    if (auth === false) router.push("/signin");
+    if (userName !== localUserName) setUserName(localUserName);
+  }, []);
 
-export default function Home() {
+  const { data, error } = useSWR(
+    `/api/GET/decks?deck_owner=${userName}`,
+    fetcher
+  );
+  //TODO: show total cards
   return (
     <>
       <Head>
@@ -14,110 +30,205 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.tsx</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
+      <Navbar />
+      <main className={styles.container}>
+        {createDeckPopUp && (
+          <PostDeckForm
+            setCreateDeckPopUp={setCreateDeckPopUp}
+            userName={userName}
           />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
+        )}
+        {addCardPopUp && (
+          <PostCardForm setAddCardPopUp={setAddCardPopUp} userName={userName} />
+        )}
+        <h1>Decks</h1>
+        <div className={styles.deck_container}>
+          {data && renderDecks(data)}
         </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
+        <button
+          onClick={(e) => {
+            setCreateDeckPopUp(true);
+          }}
+        >
+          Create Deck
+        </button>
+        <button
+          onClick={(e) => {
+            setAddCardPopUp(true);
+          }}
+        >
+          Add Card
+        </button>
       </main>
     </>
-  )
+  );
+}
+
+interface FlashcardDeckProps {
+  title: string;
+  totalCards: number;
+  dueCards: number;
+  newCards: number;
+}
+
+function FlashcardDeck({
+  title,
+  totalCards,
+  dueCards,
+  newCards,
+}: FlashcardDeckProps) {
+  return (
+    <div className={styles.flashcardDeck}>
+      <h4 className={styles.deckTitle}>{title}</h4>
+      <div className={styles.deckStatus}>
+        <div className={styles.statusItem}>
+          <span className={styles.total}>{totalCards}</span>
+          <span>Total</span>
+        </div>
+        <div className={styles.statusItem}>
+          <span className={styles.due}>{dueCards}</span>
+          <span>Due</span>
+        </div>
+        <div className={styles.statusItem}>
+          <span className={styles.new}>{newCards}</span>
+          <span>New</span>
+        </div>
+      </div>
+      <button className={styles.reviewButton}>Review</button>
+    </div>
+  );
+}
+
+const fetcher = (args: string) => fetch(args).then((res) => res.json());
+
+interface DeckData {
+  deck_name: string;
+  totalCards: number;
+  dueCards: number;
+  newCards: number;
+}
+
+interface HomeProps {
+  auth: boolean | null;
+}
+
+function renderDecks(data: DeckData[]) {
+  //TODO: make sure what happens if theres no number
+  return data.map((e) => (
+    <FlashcardDeck
+      title={e.deck_name}
+      totalCards={e.totalCards}
+      dueCards={e.dueCards}
+      newCards={e.totalCards}
+      key={e.deck_name}
+    />
+  ));
+}
+function postDeck(deck_owner: string, deck_name: string) {
+  fetch(`/api/POST/decks?deck_owner=${deck_owner}&deck_name=${deck_name}`);
+}
+//TODO: make into reusable component
+function PostDeckForm({
+  userName,
+  setCreateDeckPopUp,
+}: {
+  setCreateDeckPopUp: any;
+  userName: string;
+}) {
+  const [title, setTitle] = useState<string>("");
+  return (
+    <div className={styles.postForm}>
+      <h2>Add Deck</h2>
+      <div>
+        <span>Title: </span>
+        <input
+          type="text"
+          onChange={(e) => {
+            setTitle(e.target.value);
+          }}
+        />
+      </div>
+      <button
+        onClick={(e) => {
+          if (title !== "" && userName !== "") postDeck(userName, title);
+          setCreateDeckPopUp(false);
+        }}
+      >
+        Submit
+      </button>
+      <button
+        onClick={(e) => {
+          setCreateDeckPopUp(false);
+        }}
+      >
+        Cancel
+      </button>
+    </div>
+  );
+}
+
+function postCard(deckName: string, front: string, back: string) {
+  fetch(`/api/POST/cards?deckName=${deckName}&front=${front}&back=${back}`);
+}
+function PostCardForm({
+  userName,
+  setAddCardPopUp,
+}: {
+  userName: string;
+  setAddCardPopUp: any;
+}) {
+  const [front, setFront] = useState<string>("");
+  const [back, setBack] = useState<string>("");
+  const [deckName, setDeckName] = useState<string>("");
+  //TODO: change set deck name to dropdown
+  return (
+    <div className={styles.postForm}>
+      <h2>Add Card</h2>
+      <div>
+        <span>Front: </span>
+        <input
+          type="text"
+          onChange={(e) => {
+            setFront(e.target.value);
+          }}
+        />
+      </div>
+      <div>
+        <span>Back: </span>
+        <input
+          type="text"
+          onChange={(e) => {
+            setBack(e.target.value);
+          }}
+        />
+      </div>
+      <div>
+        <span>Deck Name: </span>
+        <input
+          type="text"
+          onChange={(e) => {
+            setDeckName(e.target.value);
+          }}
+        />
+      </div>
+      <button
+        onClick={() => {
+          if (front != "" && back != "" && deckName != "") {
+            console.log({ deckName, front, back });
+            postCard(deckName, front, back);
+          }
+          setAddCardPopUp(false);
+        }}
+      >
+        Accept
+      </button>
+      <button
+        onClick={() => {
+          setAddCardPopUp(false);
+        }}
+      >
+        Cancel
+      </button>
+    </div>
+  );
 }
