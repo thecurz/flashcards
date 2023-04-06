@@ -14,7 +14,14 @@ export default async function handler(
     process.env.DECK_COLLECTION as string
   );
   console.log(req.query);
-  const data = await collection.find({deck_owner: req.query.deck_owner}).toArray();
+  console.log({
+    conn: process.env.CONNECTION_STRING,
+    db: process.env.DB_NAME,
+    col: process.env.DECK_COLLECTION,
+  });
+  const data = await collection
+    .find({ deck_owner: req.query.deck_owner })
+    .toArray();
   //TODO: SEND ONLY NEEDED DATA (VULNERABILITY)
   res.status(200).json(data);
 }
