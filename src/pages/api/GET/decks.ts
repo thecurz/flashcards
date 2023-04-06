@@ -14,11 +14,7 @@ export default async function handler(
     process.env.DECK_COLLECTION as string
   );
   console.log(req.query);
-  console.log({
-    conn: process.env.CONNECTION_STRING,
-    db: process.env.DB_NAME,
-    col: process.env.DECK_COLLECTION,
-  });
+
   const data = await collection
     .find({ deck_owner: req.query.deck_owner })
     .toArray();
