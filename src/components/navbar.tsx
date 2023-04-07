@@ -1,5 +1,6 @@
 import styles from "@/styles/navbar.module.css";
 import Link from "next/link";
+import { UserButton } from "@clerk/nextjs";
 export default function Navbar() {
   return (
     <nav className={styles.navbar}>
@@ -14,14 +15,7 @@ export default function Navbar() {
         <Link href="" className={styles.navbar_link}>
           <span className={styles.navbar_span}>Search</span>
         </Link>
-      </div>
-      <div className={styles.navbar_account}>
-        <Link href="" className={styles.navbar_link}>
-          <span className={styles.navbar_span}>Account</span>
-        </Link>
-        <Link href="" className={styles.navbar_link}>
-          <span className={styles.navbar_span}>Log Out</span>
-        </Link>
+        <UserButton />
       </div>
     </nav>
   );

@@ -1,6 +1,8 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { useEffect, useState } from "react";
+
 export default function App({ Component, pageProps }: AppProps) {
   const [auth, setAuth] = useState<boolean | null>();
   useEffect(() => {
@@ -10,8 +12,12 @@ export default function App({ Component, pageProps }: AppProps) {
       sessionStorage.getItem("logged") == "true"
     ) {
       setAuth(true);
-      console.log('trueee')
+      console.log("trueee");
     }
   }, []);
-  return <Component {...pageProps} auth={auth} />;
+  return (
+    <ClerkProvider {...pageProps}>
+      <Component {...pageProps} auth={auth} />
+    </ClerkProvider>
+  );
 }
