@@ -10,6 +10,8 @@ export default async function handler(
     process.env.DB_NAME as string,
     process.env.CARD_COLLECTION as string
   );
-  const data = await collection.find({}).toArray();
+  const data = await collection
+    .find({ deckOwner: req.query.deckOwner, deckName: req.query.deckName })
+    .toArray();
   res.status(200).json(data);
 }

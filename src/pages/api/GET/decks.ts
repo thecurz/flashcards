@@ -8,12 +8,14 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+
+
   const collection = await connectToDatabase(
     process.env.CONNECTION_STRING as string,
     process.env.DB_NAME as string,
     process.env.DECK_COLLECTION as string
   );
-  console.log(req.query);
+
 
   const data = await collection
     .find({ deck_owner: req.query.deck_owner })

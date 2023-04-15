@@ -13,10 +13,11 @@ export default async function handler(
   );
   const insert = {
     deckName: req.query.deckName,
+    deckOwner: req.query.deckOwner,
     front: req.query.front,
     back: req.query.back,
+    ease: 0,
   };
-  console.log(insert);
 
   await collection.insertOne(insert);
   res.status(200);

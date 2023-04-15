@@ -4,7 +4,6 @@ export default async function connectToDatabase(
   dbName: string,
   collectionName: string
 ) {
-  console.log(connectionString, dbName, collectionName);
   const client: MongoClient = new MongoClient(connectionString);
   await client.connect();
 

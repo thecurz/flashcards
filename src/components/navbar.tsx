@@ -15,6 +15,8 @@ export default function Navbar() {
         <Link href="" className={styles.navbar_link}>
           <span className={styles.navbar_span}>Search</span>
         </Link>
+      </div>
+      <div className={styles.navbar_account}>
         <UserButton />
       </div>
     </nav>

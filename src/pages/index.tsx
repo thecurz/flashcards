@@ -1,24 +1,25 @@
-import PageHead from "@/components/head";
-import { useState, useEffect, SetStateAction } from "react";
-import { useRouter } from "next/router";
 import Link from "next/link";
-import useSWR from "swr";
-import styles from "@/styles/study.module.css";
-import { DeckBody } from "@/types";
-import Navbar from "@/components/navbar";
+import { useRouter } from "next/router";
+import { useState, useEffect } from "react";
+
 import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
+import useSWR from "swr";
+
+import PageHead from "@/components/head";
+import Navbar from "@/components/navbar";
+import { DeckBody } from "@/types";
+import styles from "@/styles/study.module.css";
 
 export default function Home({ auth }: HomeProps) {
   const [createDeckPopUp, setCreateDeckPopUp] = useState<boolean>(false);
   const [addCardPopUp, setAddCardPopUp] = useState<boolean>(false);
   const { isLoaded, isSignedIn, user } = useUser();
-  const router = useRouter();
-
   const { data, error } = useSWR(
     `/api/GET/decks?deck_owner=${user?.username}`,
     fetcher
   );
   //TODO: show total cards
+  //TODO: make sure user.username exists
   return (
     <>
       <PageHead />
@@ -37,7 +38,7 @@ export default function Home({ auth }: HomeProps) {
               userName={user?.username || ""}
             />
           )}
-          <h1>Hello {user?.username}</h1>
+          <h1>Hello {user?.username}!</h1>
           <h1>Decks</h1>
           <div className={styles.deck_container}>
             {data && renderDecks(data)}
@@ -83,6 +84,8 @@ function FlashcardDeck({
   dueCards,
   newCards,
 }: FlashcardDeckProps) {
+  //TODO: move router out (useContext)
+  const router = useRouter();
   return (
     <div className={styles.flashcardDeck}>
       <h4 className={styles.deckTitle}>{title}</h4>
@@ -100,7 +103,14 @@ function FlashcardDeck({
           <span>New</span>
         </div>
       </div>
-      <button className={styles.reviewButton}>Review</button>
+      <button
+        onClick={(e) => {
+          router.push(`/review/${title}`);
+        }}
+        className={styles.reviewButton}
+      >
+        Review
+      </button>
     </div>
   );
 }
@@ -173,8 +183,15 @@ function PostDeckForm({
   );
 }
 
-function postCard(deckName: string, front: string, back: string) {
-  fetch(`/api/POST/cards?deckName=${deckName}&front=${front}&back=${back}`);
+function postCard(
+  deckName: string,
+  deckOwner: string,
+  front: string,
+  back: string
+) {
+  fetch(
+    `/api/POST/cards?deckName=${deckName}&deckOwner=${deckOwner}&front=${front}&back=${back}`
+  );
 }
 function PostCardForm({
   userName,
@@ -221,7 +238,7 @@ function PostCardForm({
         onClick={() => {
           if (front != "" && back != "" && deckName != "") {
             console.log({ deckName, front, back });
-            postCard(deckName, front, back);
+            postCard(deckName, userName, front, back);
           }
           setAddCardPopUp(false);
         }}
