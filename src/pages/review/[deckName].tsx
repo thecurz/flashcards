@@ -4,12 +4,11 @@ import useSWR from "swr";
 import styles from "@/styles/study.module.css";
 import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/router";
-import { NextPage } from "next";
 import { useState } from "react";
 
 const fetcher = (args: string) => fetch(args).then((res) => res.json());
 const putCard = async (_id: string, rate: "good" | "bad") => {
-  await fetch(`/api/PUT/cards?_id=${_id}&rate=${rate}`);
+  await fetch(`/api/PUT/passCard?_id=${_id}`);
 };
 export default function Review() {
   //TODO: make server only send the current front card
